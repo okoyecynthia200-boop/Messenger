@@ -14,20 +14,82 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
+  position: relative;
+  padding: 90px 20px 30px;
+  overflow: hidden;
+  background:
+    linear-gradient(rgba(0, 177, 64, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 177, 64, 0.07) 1px, transparent 1px),
+    linear-gradient(145deg, #111111, #1c1c1c);
+  background-size:
+    40px 40px,
+    40px 40px,
+    auto;
+}
+
+.container::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at 50% 45%,
+    rgba(0, 177, 64, 0.1),
+    transparent 45%
+  );
+  pointer-events: none;
 }
 
 .card {
+  position: relative;
+  z-index: 1;
   width: 400px;
   padding: 40px;
-  background: #111;
+  background: #111111;
   border-radius: 20px;
-  box-shadow: 0 0 25px rgba(0, 255, 136, 0.3);
+  box-shadow: none;
+}
+
+.home-link {
+  position: absolute;
+  z-index: 1;
+  top: 28px;
+  left: 32px;
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  padding: 0;
+  border-radius: 50%;
+  background: #00b140;
+  color: #ffffff;
+  font-size: 22px;
+  font-weight: 700;
+  text-decoration: none;
 }
 
 .card h1 {
   text-align: center;
   color: white;
   margin-bottom: 30px;
+}
+
+.auth-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 26px;
+  color: #ffffff;
+  font-size: 23px;
+  font-weight: bold;
+}
+
+.auth-logo label {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #00b140;
 }
 
 .card input[type="text"],
@@ -45,13 +107,17 @@ body {
 
 .remember {
   display: flex;
-  gap: 10px;
+  align-items: center;
+  gap: 8px;
   color: white;
-  margin-bottom: 20px;
+  width: fit-content;
+  margin: 0 auto 20px;
+  white-space: nowrap;
 }
 
 .remember input[type="checkbox"] {
-  accent-color: #00ff88;
+  accent-color: #00b140;
+  margin: 0;
 }
 
 .button {
@@ -63,10 +129,6 @@ body {
   color: black;
   font-weight: bold;
   cursor: pointer;
-}
-
-.button:hover {
-  transform: scale(1.02);
 }
 
 .forgot {
@@ -95,4 +157,16 @@ body {
 .button:disabled {
   cursor: wait;
   opacity: 0.7;
+}
+
+@media (max-width: 480px) {
+  .home-link {
+    top: 20px;
+    left: 20px;
+  }
+
+  .card {
+    width: 100%;
+    padding: 32px 24px;
+  }
 }

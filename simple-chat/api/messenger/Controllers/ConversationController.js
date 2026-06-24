@@ -1,4 +1,5 @@
 const Conversation = require("../Models/ConvoModel");
+const Message = require("../Models/MessageModel");
 
 exports.GetConversation = async (req, res) => {
   try {
@@ -44,7 +45,18 @@ exports.getmyConversations = async (req, res) => {
       })
       .sort({ updatedAt: -1 });
 
-    res.json(conversations);
+    const conversationsWithUnreadCount = await Promise.all(
+      conversations.map(async (conversation) => ({
+        ...conversation.toObject(),
+        unreadCount: await Message.countDocuments({
+          conversation: conversation._id,
+          sender: { $ne: req.user._id },
+          readBy: { $ne: req.user._id },
+        }),
+      })),
+    );
+
+    res.json(conversationsWithUnreadCount);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

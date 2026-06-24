@@ -13,14 +13,18 @@ const app = express();
 const server = http.createServer(app);
 const PORT = process.env.PORT || 3000;
 const MONGO_CONNECTION = process.env.MONGO_URL;
+const LOCAL_CLIENT_ORIGIN = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
+const allowLocalClient = (origin, callback) => {
+  callback(null, !origin || LOCAL_CLIENT_ORIGIN.test(origin));
+};
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: allowLocalClient,
   }),
 );
 
-app.use(express.json());
+app.use(express.json({ limit: "5mb" }));
 
 mongoose
   .connect(MONGO_CONNECTION)
@@ -35,7 +39,7 @@ mongoose
 
 const socketio = new Server(server, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: allowLocalClient,
     methods: ["GET", "POST", "PUT", "DELETE"],
   },
 });

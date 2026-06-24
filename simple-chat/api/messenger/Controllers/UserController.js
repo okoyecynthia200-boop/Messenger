@@ -37,12 +37,38 @@ exports.getUserByUsername = async (req, res) => {
 
 exports.updateProfile = async (req, res) => {
   try {
-    const { avatar, bio, username } = req.body;
+    const updates = {};
+
+    if (typeof req.body.username === "string") {
+      const username = req.body.username.trim().toLowerCase();
+      if (!username) {
+        return res.status(400).json({ message: "Username is required" });
+      }
+
+      const existingUser = await User.findOne({
+        username,
+        _id: { $ne: req.user._id },
+      });
+
+      if (existingUser) {
+        return res.status(400).json({ message: "Username is already taken" });
+      }
+
+      updates.username = username;
+    }
+
+    if (typeof req.body.avatar === "string") {
+      updates.avatar = req.body.avatar;
+    }
+
+    if (!Object.keys(updates).length) {
+      return res.status(400).json({ message: "No profile changes supplied" });
+    }
 
     const user = await User.findByIdAndUpdate(
       req.user._id,
-      { avatar, bio, username },
-      { new: true },
+      updates,
+      { new: true, runValidators: true },
     ).select("-password");
 
     res.json(user);

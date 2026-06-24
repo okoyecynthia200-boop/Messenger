@@ -1,7 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import "../styles/Conversation.css";
-import chatimg from "../assets/chatimg.jpg";
-import user400 from "../assets/user400.jpg";
 
 import Button from "../components/Button";
 
@@ -23,18 +21,43 @@ function Conversation() {
       return;
     }
 
+    let isActive = true;
+    const markMessagesAsRead = () =>
+      apiRequest(`/messages/read/${conversationId}`, { method: "PUT" }).catch(
+        () => {},
+      );
+
     Promise.all([
       apiRequest(`/conversations/${conversationId}`),
       apiRequest(`/messages/${conversationId}`),
     ])
       .then(([conversationData, messageData]) => {
+        if (!isActive) return;
         setConversation(conversationData);
         setMessages(messageData);
+        markMessagesAsRead();
       })
       .catch((requestError) => setError(requestError.message));
+
+    const refreshMessages = window.setInterval(() => {
+      apiRequest(`/messages/${conversationId}`)
+        .then((messageData) => {
+          if (!isActive) return;
+          setMessages(messageData);
+          markMessagesAsRead();
+        })
+        .catch(() => {});
+    }, 2000);
+
+    return () => {
+      isActive = false;
+      window.clearInterval(refreshMessages);
+    };
   }, [conversationId, currentUser, navigate]);
 
-  const otherMember = conversation?.members[0];
+  const otherMember = conversation?.members.find(
+    (member) => String(member._id) !== String(currentUser?.id),
+  );
 
   const sendMessage = async (event) => {
     event.preventDefault();
@@ -53,37 +76,54 @@ function Conversation() {
   };
 
   return (
-    <div
-      className="conversation-page"
-      style={{
-        backgroundImage: `url(${chatimg})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-      }}
-    >
+    <div className="conversation-page">
       <div className="conversation-header">
-        <Button
-          text="<"
-          className="back-btn"
+        <button
+          className="conversation-back"
+          type="button"
+          aria-label="Back to chats"
           onClick={() => navigate("/chat")}
-        />
+        >
+          ←
+        </button>
 
-        <img src={otherMember?.avatar || user400} alt="" />
+        {otherMember?.avatar ? (
+          <img src={otherMember.avatar} alt="" />
+        ) : (
+          <span className="conversation-avatar" aria-hidden="true" />
+        )}
 
         <h3>{otherMember?.username || "Conversation"}</h3>
       </div>
 
       <div className="messages">
-        {messages.map((message) => (
-          <div
-            className={`message ${
-              message.sender?._id === currentUser?.id ? "right" : "left"
-            }`}
-            key={message._id}
-          >
-            {message.text}
-          </div>
-        ))}
+        {messages.map((message) => {
+          const senderId = message.sender?._id || message.sender;
+          const isOutgoing = String(senderId) === String(currentUser?.id);
+          const isSeen =
+            isOutgoing &&
+            message.readBy?.some(
+              (userId) =>
+                String(userId?._id || userId) === String(otherMember?._id),
+            );
+
+          return (
+            <div
+              className={`message ${isOutgoing ? "right" : "left"} ${
+                isSeen ? "seen" : ""
+              }`}
+              key={message._id}
+            >
+              <span className="message-text">{message.text}</span>
+              <time className="message-time" dateTime={message.createdAt}>
+                {new Date(message.createdAt).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </time>
+            </div>
+          );
+        })}
 
         {!messages.length && !error && (
           <p className="conversation-status">No messages yet.</p>

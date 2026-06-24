@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import "../styles/Chat.css";
 
-import user400 from "../assets/user400.jpg";
-
 import Button from "../components/Button";
 
 import { useNavigate } from "react-router-dom";
@@ -11,11 +9,18 @@ import { HiOutlineDotsHorizontal } from "react-icons/hi";
 
 import {
   IoAdd,
-  IoCallOutline,
   IoChatbubbleOutline,
   IoPersonOutline,
 } from "react-icons/io5";
 import { apiRequest, clearSession, getStoredUser } from "../api";
+
+function ProfileAvatar({ avatar, alt, className }) {
+  return avatar ? (
+    <img className={className} src={avatar} alt={alt} />
+  ) : (
+    <span className={`${className} blank-avatar`} aria-label={alt} />
+  );
+}
 
 function Chat() {
   const navigate = useNavigate();
@@ -35,12 +40,26 @@ function Chat() {
       return;
     }
 
-    apiRequest("/conversations")
-      .then((data) => {
-        setConversations(data);
-        setStatus(data.length ? "" : "Search for a user to start chatting.");
-      })
-      .catch((error) => setStatus(error.message));
+    let isActive = true;
+    const loadConversations = () => {
+      apiRequest("/conversations")
+        .then((data) => {
+          if (!isActive) return;
+          setConversations(data);
+          setStatus(data.length ? "" : "Search for a user to start chatting.");
+        })
+        .catch((error) => {
+          if (isActive) setStatus(error.message);
+        });
+    };
+
+    loadConversations();
+    const refreshConversations = window.setInterval(loadConversations, 2000);
+
+    return () => {
+      isActive = false;
+      window.clearInterval(refreshConversations);
+    };
   }, [currentUser, navigate]);
 
   useEffect(() => {
@@ -149,7 +168,11 @@ function Chat() {
                     type="button"
                     onClick={() => openConversation(user._id)}
                   >
-                    <img src={user.avatar || user400} alt="" />
+                    <ProfileAvatar
+                      avatar={user.avatar}
+                      alt=""
+                      className="add-user-avatar"
+                    />
 
                     <span>
                       <strong>{user.username}</strong>
@@ -184,7 +207,11 @@ function Chat() {
       {query.trim() &&
         users.map((user) => (
           <div className="contact" key={user._id} onClick={() => openConversation(user._id)}>
-            <img src={user.avatar || user400} alt="" />
+            <ProfileAvatar
+              avatar={user.avatar}
+              alt=""
+              className="contact-avatar"
+            />
 
             <div>
               <h3>{user.username}</h3>
@@ -202,12 +229,25 @@ function Chat() {
               key={conversation._id}
               onClick={() => navigate(`/conversation/${conversation._id}`)}
             >
-              <img src={otherMember?.avatar || user400} alt="" />
+              <ProfileAvatar
+                avatar={otherMember?.avatar}
+                alt=""
+                className="contact-avatar"
+              />
 
               <div>
                 <h3>{otherMember?.username || "Conversation"}</h3>
                 <p>{conversation.lastMessage?.text || "No messages yet"}</p>
               </div>
+
+              {conversation.unreadCount > 0 && (
+                <span
+                  className="message-count"
+                  aria-label={`${conversation.unreadCount} unread messages`}
+                >
+                  {conversation.unreadCount}
+                </span>
+              )}
             </div>
           );
         })}
@@ -215,12 +255,6 @@ function Chat() {
       {status && <p className="empty-state">{status}</p>}
 
       <div className="bottom-nav">
-        <Button
-          icon={<IoCallOutline />}
-          text="Calls"
-          className="nav-btn"
-        />
-
         <Button
           icon={<IoChatbubbleOutline />}
           text="Chats"
@@ -231,6 +265,7 @@ function Chat() {
           icon={<IoPersonOutline />}
           text="You"
           className="nav-btn"
+          onClick={() => navigate("/profile")}
         />
       </div>
     </div>

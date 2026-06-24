@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "../styles/Login.css";
 import { apiRequest, setSession } from "../api";
 
@@ -39,10 +38,22 @@ function Login() {
       setLoading(false);
     }
   };
-
+  // hvzfyuqdh
   return (
     <div className="container">
+      <Link
+        className="home-link"
+        to="/"
+        aria-label="Back to home"
+        title="Back to home"
+      >
+        ←
+      </Link>
       <div className="card">
+        <div className="logo auth-logo">
+          <label></label>
+          CONVOS
+        </div>
         <h1>LOGIN</h1>
 
         <form onSubmit={onSubmit}>
@@ -68,18 +79,20 @@ function Login() {
 
           <div className="remember">
             <input type="checkbox" />
-            <label>Remember me</label>
+            <span>Remember me</span>
           </div>
 
-          {error && <p className="form-error" role="alert">{error}</p>}
+          {error && (
+            <p className="form-error" role="alert">
+              {error}
+            </p>
+          )}
 
           <button className="button" type="submit" disabled={loading}>
             {loading ? "Signing in..." : "Sign In"}
           </button>
 
-          <p className="forgot">
-            Forgot your password?
-          </p>
+          <p className="forgot">Forgot your password?</p>
 
           <p className="link">
             Don't have an account?

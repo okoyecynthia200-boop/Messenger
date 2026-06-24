@@ -52,7 +52,19 @@ function Register() {
 
   return (
     <div className="container">
+      <Link
+        className="home-link"
+        to="/"
+        aria-label="Back to home"
+        title="Back to home"
+      >
+        ←
+      </Link>
       <div className="card">
+        <div className="logo auth-logo">
+          <label></label>
+          CONVOS
+        </div>
         <h1>REGISTER</h1>
 
         <form onSubmit={onSubmit}>
