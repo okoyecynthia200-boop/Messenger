@@ -2,16 +2,12 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import "../styles/Login.css";
-import Button from "../components/Button";
 import { apiRequest, setSession } from "../api";
 
 function Login() {
   const navigate = useNavigate();
-  const [mode, setMode] = useState("login");
   const [form, setForm] = useState({
-    username: "",
     emailOrUsername: "",
-    email: "",
     password: "",
   });
   const [error, setError] = useState("");
@@ -30,21 +26,9 @@ function Login() {
     setLoading(true);
 
     try {
-      const payload =
-        mode === "login"
-          ? {
-              emailOrUsername: form.emailOrUsername,
-              password: form.password,
-            }
-          : {
-              username: form.username,
-              email: form.email,
-              password: form.password,
-            };
-
-      const data = await apiRequest(`/auth/${mode === "login" ? "login" : "register"}`, {
+      const data = await apiRequest("/auth/login", {
         method: "POST",
-        body: JSON.stringify(payload),
+        body: JSON.stringify(form),
       });
 
       setSession(data);
@@ -61,15 +45,25 @@ function Login() {
       <div className="card">
         <h1>LOGIN</h1>
 
-        <form>
+        <form onSubmit={onSubmit}>
           <input
             type="text"
-            placeholder="Username"
+            name="emailOrUsername"
+            placeholder="Email or username"
+            value={form.emailOrUsername}
+            onChange={updateForm}
+            autoComplete="username"
+            required
           />
 
           <input
             type="password"
+            name="password"
             placeholder="Password"
+            value={form.password}
+            onChange={updateForm}
+            autoComplete="current-password"
+            required
           />
 
           <div className="remember">
@@ -77,8 +71,10 @@ function Login() {
             <label>Remember me</label>
           </div>
 
-          <button className="button" onClick={onSubmit}>
-            Sign In
+          {error && <p className="form-error" role="alert">{error}</p>}
+
+          <button className="button" type="submit" disabled={loading}>
+            {loading ? "Signing in..." : "Sign In"}
           </button>
 
           <p className="forgot">

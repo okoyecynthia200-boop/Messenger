@@ -53,6 +53,10 @@ body {
   margin-bottom: 20px;
 }
 
+.terms input[type="checkbox"] {
+  accent-color: #00ff88;
+}
+
 .button {
   width: 100%;
   padding: 15px;
@@ -77,4 +81,15 @@ body {
 .link a {
   color: #00ff88;
   text-decoration: none;
+}
+
+.form-error {
+  color: #ff8080;
+  margin: 0 0 16px;
+  text-align: center;
+}
+
+.button:disabled {
+  cursor: wait;
+  opacity: 0.7;
 }
